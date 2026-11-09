@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="حساب ماهیگیری">
+<title>حساب ماهیگیری</title>
+<style>
+  :root {
+    --bg:#0f1720; --card:#1a2530; --card2:#243240; --text:#e6edf3;
+    --muted:#8b9aa8; --accent:#2ea8ff; --green:#22c55e; --red:#ef4444;
+    --yellow:#eab308; --border:#2b3a49; --purple:#a855f7;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro",Tahoma,sans-serif;font-size:15px}
+  body{padding-bottom:30px}
+  header{position:sticky;top:0;z-index:50;
+    background:linear-gradient(180deg,#16212c,#0f1720);border-bottom:1px solid var(--border);
+    padding:12px 14px 8px;padding-top:max(12px,env(safe-area-inset-top))}
+  h1{font-size:18px;margin:0}
+  .subtitle{color:var(--muted);font-size:12px;margin-top:2px}
+  nav{display:flex;gap:4px;overflow-x:auto;margin-top:10px;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:0 0 auto;background:var(--card2);color:var(--muted);
+    border:1px solid var(--border);border-radius:10px;padding:8px 12px;
+    font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap}
+  nav button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  main{padding:14px;max-width:700px;margin:0 auto}
+  .tab{display:none}.tab.active{display:block}
+  .card{background:var(--card);border:1px solid var(--border);
+    border-radius:14px;padding:14px;margin-bottom:12px}
+  .card h2{font-size:15px;margin:0 0 10px;color:var(--accent)}
+  .card h3{font-size:14px;margin:12px 0 8px}
+  .row{display:flex;gap:8px;margin-bottom:8px}
+  .row>*{flex:1;min-width:0}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  input,select,textarea{width:100%;background:var(--card2);color:var(--text);
+    border:1px solid var(--border);border-radius:10px;padding:10px;
+    font-size:14px;font-family:inherit;-webkit-appearance:none}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  button.btn{background:var(--accent);color:#fff;border:none;border-radius:10px;
+    padding:11px 16px;font-size:14px;font-family:inherit;cursor:pointer;
+    width:100%;font-weight:600}
+  button.btn:active{opacity:.8}
+  button.ghost{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+  button.sm{padding:6px 10px;font-size:12px;width:auto;border-radius:8px}
+  button.danger{background:var(--red)}
+  button.success{background:var(--green)}
+  .stat{display:flex;justify-content:space-between;padding:8px 0;
+    border-bottom:1px dashed var(--border);font-size:13px;gap:10px}
+  .stat:last-child{border-bottom:none}
+  .stat .v{font-weight:600;text-align:left}
+  .green{color:var(--green)}.red{color:var(--red)}.muted{color:var(--muted)}
+  .small{font-size:12px}
+  .list-item{background:var(--card2);border-radius:10px;padding:10px 12px;
+    margin-bottom:8px;display:flex;justify-content:space-between;
+    align-items:center;gap:8px;font-size:13px}
+  .list-item .meta{color:var(--muted);font-size:11px;margin-top:2px}
+  .empty{text-align:center;color:var(--muted);padding:20px 0;font-size:13px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+  .pill.buy{background:rgba(234,179,8,.2);color:var(--yellow)}
+  .pill.sell{background:rgba(34,197,94,.2);color:var(--green)}
+  .pill.kg{background:rgba(46,168,255,.2);color:var(--accent)}
+  .pill.count{background:rgba(168,85,247,.2);color:var(--purple)}
+  .flex{display:flex;gap:8px;align-items:center}
+  .flex>*{flex:0 0 auto}
+  .grow{flex:1 1 auto!important}
+  .mt8{margin-top:8px}.mt12{margin-top:12px}
+  .hidden{display:none!important}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:#fff;padding:10px 20px;border-radius:10px;
+    font-size:13px;z-index:999;opacity:0;transition:opacity .2s;
+    pointer-events:none;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  .toast.error{background:var(--red)}
+  .toast.warn{background:var(--yellow);color:#000}
+  .big-num{font-size:20px;font-weight:700;direction:ltr;text-align:right;font-family:-apple-system}
+  .mini-chart{display:flex;gap:2px;align-items:flex-end;height:40px;margin-top:8px}
+  .mini-chart>div{flex:1;background:var(--accent);border-radius:2px;min-height:2px}
+  .rate-box{text-align:center;padding:14px;background:var(--card2);border-radius:12px;margin-bottom:10px}
+  .rate-box .big-num{font-size:26px;text-align:center}
+  .lock-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);
+    border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+  .lock-btn.locked{background:var(--yellow);color:#000;border-color:var(--yellow)}
+  .note{background:rgba(46,168,255,.1);border-right:3px solid var(--accent);
+    padding:8px 12px;border-radius:8px;font-size:12px;color:var(--muted);margin-top:8px}
+  #print-area{display:none}
+  @media print{
+    body>*:not(#print-area){display:none!important}
+    #print-area{display:block!important;padding:10px;color:#000;background:#fff;
+      font-size:13px;line-height:1.8}
+    #print-area table{width:100%;border-collapse:collapse;margin-top:10px}
+    #print-area th,#print-area td{border:1px solid #333;padding:6px;text-align:right;font-size:12px}
+    #print-area th{background:#eee}
+    #print-area h2{font-size:16px;margin:0 0 6px}
+    #print-area .header{display:flex;justify-content:space-between;border-bottom:2px solid #333;
+      padding-bottom:6px;margin-bottom:10px}
+    @page{margin:1cm}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎣 حساب ماهیگیری</h1>
+  <div class="subtitle" id="rateHeader">نرخ دلار: —</div>
+  <nav>
+    <button data-tab="dash" class="active">📊 داشبورد</button>
+    <button data-tab="rate">💵 نرخ دلار</button>
+    <button data-tab="products">📦 کالاها</button>
+    <button data-tab="tx">➕ تراکنش</button>
+    <button data-tab="customers">👥 مشتریها</button>
+    <button data-tab="reports">📈 گزارشات</button>
+    <button data-tab="invoice">🧾 فاکتور</button>
+    <button data-tab="backup">⚙️ پشتیبان</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- داشبورد -->
+<section class="tab active" id="tab-dash">
+  <div class="card">
+    <h2>امروز</h2>
+    <div class="rate-box">
+      <div class="muted small">نرخ دلار امروز</div>
+      <div class="big-num" id="dashRate">—</div>
+    </div>
+    <div id="dashToday"></div>
+  </div>
+  <div class="card">
+    <h2>این ماه</h2>
+    <div id="dashMonth"></div>
+  </div>
+  <div class="card">
+    <h2>خلاصهٔ کل</h2>
+    <div id="dashAll"></div>
+  </div>
+  <div class="card" id="installCard">
+    <h2>📲 نصب روی آیفون</h2>
+    <div class="small">در Safari روی دکمهٔ <b>Share</b> (مربع با فلش) بزن → <b>Add to Home Screen</b> → Add. حالا مثل یک اپ روی صفحهٔ گوشی‌ات می‌نشیند.</div>
+  </div>
+</section>
+
+<!-- نرخ دلار -->
+<section class="tab" id="tab-rate">
+  <div class="card">
+    <h2>ثبت نرخ دلار</h2>
+    <label>تاریخ</label>
+    <input type="date" id="rateDate">
+    <label class="mt8">نرخ (ریال برای هر دلار)</label>
+    <input type="number" id="rateValue" inputmode="numeric" placeholder="مثلاً 90000">
+    <div class="flex mt8">
+      <button class="btn" onclick="saveRate()">💾 ثبت نرخ</button>
+      <button class="btn ghost" onclick="autoFetchRate()" style="max-width:120px">🌐 خودکار</button>
+    </div>
+    <div class="note">نرخ خودکار معمولاً نرخ رسمی است و با نرخ بازار فرق دارد. اگر فرق داشت، دستی اصلاح کن.</div>
+  </div>
+  <div class="card">
+    <h2>تاریخچهٔ نرخها</h2>
+    <div id="rateHistory"></div>
+  </div>
+</section>
+
+<!-- کالاها -->
+<section class="tab" id="tab-products">
+  <div class="card">
+    <h2>➕ افزودن کالا</h2>
+    <label>نام کالا</label>
+    <input type="text" id="pName" placeholder="مثلاً نخ ماهیگیری">
+    <div class="row mt8">
+      <div>
+        <label>واحد</label>
+        <select id="pUnit">
+          <option value="kg">کیلو</option>
+          <option value="count">تعداد</option>
+        </select>
+      </div>
+      <div>
+        <label>قیمت خرید (دلار)</label>
+        <input type="number" id="pBuy" inputmode="decimal" placeholder="4">
+      </div>
+      <div>
+        <label>قیمت فروش (دلار)</label>
+        <input type="number" id="pSell" inputmode="decimal" placeholder="4.5">
+      </div>
+    </div>
+    <button class="btn mt12" onclick="addProduct()">افزودن کالا</button>
+  </div>
+  <div class="card">
+    <h2>لیست کالاها</h2>
+    <div id="productList"></div>
+  </div>
+</section>
+
+<!-- تراکنش -->
+<section class="tab" id="tab-tx">
+  <div class="card">
+    <h2>➕ ثبت تراکنش</h2>
+    <div class="row">
+      <div>
+        <label>نوع</label>
+        <select id="txType" onchange="txTypeChanged()">
+          <option value="sell">فروش</option>
+          <option value="buy">خرید</option>
+        </select>
+      </div>
+      <div>
+        <label>تاریخ</label>
+        <input type="date" id="txDate">
+      </div>
+    </div>
+    <label class="mt8">کالا</label>
+    <select id="txProduct" onchange="txProductChanged()"></select>
+    <div class="row mt8">
+      <div>
+        <label>مقدار (<span id="txUnitLabel">کیلو</span>)</label>
+        <input type="number" id="txQty" inputmode="decimal" placeholder="53" oninput="calcTx()">
+      </div>
+      <div>
+        <label>نرخ دلار این تراکنش</label>
+        <input type="number" id="txRate" inputmode="numeric" oninput="calcTx()">
+      </div>
+    </div>
+    <h3>قیمت واحد</h3>
+    <div class="row">
+      <div>
+        <label>دلاری ($)</label>
+        <input type="number" id="txUSD" inputmode="decimal" placeholder="4.5" oninput="syncFromUSD()">
+      </div>
+      <div>
+        <label>ریالی</label>
+        <input type="number" id="txIRR" inputmode="numeric" placeholder="405000" oninput="syncFromIRR()">
+      </div>
+      <div style="flex:0 0 auto;align-self:flex-end">
+        <button class="lock-btn" id="lockBtn" onclick="toggleLock()">🔓</button>
+      </div>
+    </div>
+    <div id="costRow" class="mt8">
+      <label>قیمت خرید واحد (دلار) — برای محاسبهٔ سود</label>
+      <input type="number" id="txCostUSD" inputmode="decimal" oninput="calcTx()">
+    </div>
+    <label class="mt8">مشتری / فروشنده (اختیاری)</label>
+    <select id="txCustomer"></select>
+    <label class="mt8">یادداشت (اختیاری)</label>
+    <input type="text" id="txNote" placeholder="">
+    <div class="card" style="background:var(--card2);margin-top:12px;margin-bottom:0">
+      <div class="stat"><span>جمع کل</span><span class="v" id="txTotal"></span></div>
+      <div class="stat" id="txProfitRow"><span>سود</span><span class="v" id="txProfit"></span></div>
+    </div>
+    <button class="btn mt12 success" onclick="saveTx()">💾 ثبت تراکنش</button>
+  </div>
+  <div class="card">
+    <h2>آخرین تراکنشها</h2>
+    <div id="txList"></div>
+  </div>
+</section>
+
+<!-- مشتریها -->
+<section class="tab" id="tab-customers">
+  <div class="card">
+    <h2>➕ افزودن مشتری</h2>
+    <label>نام</label>
+    <input type="text" id="cName" placeholder="نام مشتری">
+    <div class="row mt8">
+      <div><label>تلفن</label><input type="tel" id="cPhone" placeholder="0912..."></div>
+      <div><label>آدرس</label><input type="text" id="cAddress" placeholder="اختیاری"></div>
+    </div>
+    <button class="btn mt12" onclick="addCustomer()">افزودن مشتری</button>
+  </div>
+  <div class="card">
+    <h2>لیست مشتریها</h2>
+    <div id="customerList"></div>
+  </div>
+</section>
+
+<!-- گزارشات -->
+<section class="tab" id="tab-reports">
+  <div class="card">
+    <h2>دورهٔ گزارش</h2>
+    <div class="row">
+      <div>
+        <label>از تاریخ</label>
+        <input type="date" id="repFrom">
+      </div>
+      <div>
+        <label>تا تاریخ</label>
+        <input type="date" id="repTo">
+      </div>
+    </div>
+    <div class="flex mt8">
+      <button class="btn ghost sm" onclick="setRepToday()">امروز</button>
+      <button class="btn ghost sm" onclick="setRepMonth()">این ماه</button>
+      <button class="btn ghost sm" onclick="setRepAll()">همه</button>
+    </div>
+    <button class="btn mt12" onclick="runReport()">📊 نمایش گزارش</button>
+  </div>
+  <div id="reportResult"></div>
+</section>
+
+<!-- فاکتور -->
+<section class="tab" id="tab-invoice">
+  <div class="card">
+    <h2>ساخت فاکتور</h2>
+    <label>مشتری</label>
+    <select id="invCustomer" onchange="renderInvoiceTab()"></select>
+    <label class="mt8">از تاریخ</label>
+    <input type="date" id="invFrom" onchange="renderInvoiceTab()">
+    <label class="mt8">تا تاریخ</label>
+    <input type="date" id="invTo" onchange="renderInvoiceTab()">
+    <button class="btn mt12" onclick="printInvoice()">🖨️ چاپ / PDF</button>
+  </div>
+  <div class="card">
+    <h2>پیشنمایش</h2>
+    <div id="invoicePreview"></div>
+  </div>
+</section>
+
+<!-- پشتیبان -->
+<section class="tab" id="tab-backup">
+  <div class="card">
+    <h2>پشتیبانگیری</h2>
+    <div class="small muted">همهٔ دادهها روی همین گوشی ذخیره میشوند. هر چند وقت یک‌بار پشتیبان بگیر.</div>
+    <button class="btn mt12 success" onclick="exportBackup()">⬇️ دانلود پشتیبان</button>
+    <label class="mt12">بازگرداندن از فایل</label>
+    <input type="file" id="importFile" accept=".json" onchange="importBackup(event)">
+  </div>
+  <div class="card">
+    <h2>وضعیت</h2>
+    <div id="backupStatus"></div>
+  </div>
+  <div class="card">
+    <h2 style="color:var(--red)">منطقهٔ خطر</h2>
+    <div class="small muted">همهٔ دادهها پاک میشود. اول پشتیبان بگیر!</div>
+    <button class="btn danger mt12" onclick="resetAll()">🗑️ پاککردن همهٔ دادهها</button>
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<div id="print-area"></div>
+
+<script>
+// ============ STATE ============
+const LS_KEY = 'fishcalc_v1';
+let state = {
+  rates: [],
+  products: [],
+  customers: [],
+  transactions: []
+};
+let locked = false;
+let updating = false;
+
+// ============ UTILS ============
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function monthStart(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'}
+function normalizeNum(s){if(s==null)return'';return String(s).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/,/g,'')}
+function num(s){const n=parseFloat(normalizeNum(s));return isFinite(n)?n:0}
+function fmt(n,d=0){if(!isFinite(n))n=0;return Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fa(s){return String(s).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])}
+function faNum(n,d=0){return fa(fmt(n,d))}
+function faIRR(n){return faNum(Math.round(n))+' ریال'}
+function faUSD(n){return '$'+faNum(n,2)}
+function toast(msg,kind){const t=document.getElementById('toast');t.textContent=msg;
+  t.className='toast '+(kind||'')+' show';clearTimeout(t._t);
+  t._t=setTimeout(()=>{t.className='toast '+(kind||'')},2500)}
+
+// ============ STORAGE ============
+function loadState(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw){const p=JSON.parse(raw);state=Object.assign(state,p)}
+  }catch(e){console.warn(e)}
+}
+function saveState(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state))}
+  catch(e){toast('خطا در ذخیره','error')}
+}
+
+// ============ RATE ============
+function getRateForDate(date){
+  const sorted=state.rates.filter(r=>r.date<=date).sort((a,b)=>b.date.localeCompare(a.date));
+  if(sorted.length)return sorted[0].value;
+  const all=[...state.rates].sort((a,b)=>a.date.localeCompare(b.date));
+  return all.length?all[0].value:0;
+}
+function currentRate(){return getRateForDate(today())}
+function saveRate(){
+  const d=document.getElementById('rateDate').value;
+  const v=num(document.getElementById('rateValue').value);
+  if(!d||!v){toast('تاریخ و نرخ را وارد کن','error');return}
+  state.rates=state.rates.filter(r=>r.date!==d);
+  state.rates.push({date:d,value:v});
+  state.rates.sort((a,b)=>a.date.localeCompare(b.date));
+  saveState();renderRateTab();renderDashboard();updateHeader();
+  toast('نرخ ثبت شد');
+}
+async function autoFetchRate(){
+  toast('در حال گرفتن نرخ...','warn');
+  let rate=null;
+  try{
+    const r=await fetch('https://open.er-api.com/v6/latest/USD');
+    const j=await r.json();
+    if(j.rates&&j.rates.IRR)rate=Math.round(j.rates.IRR);
+  }catch(e){}
+  if(!rate){
+    try{
+      const r=await fetch('https://api.exchangerate.host/latest?base=USD&symbols=IRR');
+      const j=await r.json();
+      if(j.rates&&j.rates.IRR)rate=Math.round(j.rates.IRR);
+    }catch(e){}
+  }
+  if(rate){
+    document.getElementById('rateValue').value=rate;
+    toast('نرخ گرفته شد ('+rate+') — با بازار مقایسه کن','warn');
+  }else{
+    toast('نرخ خودکار نشد، دستی وارد کن','error');
+  }
+}
+function renderRateTab(){
+  const h=document.getElementById('rateHistory');
+  if(!state.rates.length){h.innerHTML='<div class="empty">هنوز نرخی ثبت نشده</div>';return}
+  const sorted=[...state.rates].sort((a,b)=>b.date.localeCompare(a.date));
+  h.innerHTML=sorted.map(r=>`
+    <div class="list-item">
+      <div>${fa(r.date)}<div class="meta">${faNum(r.value)} ریال</div></div>
+      <button class="btn ghost sm" onclick="deleteRate('${r.date}')">حذف</button>
+    </div>`).join('');
+}
+function deleteRate(d){
+  if(!confirm('حذف نرخ '+d+'؟'))return;
+  state.rates=state.rates.filter(r=>r.date!==d);saveState();
+  renderRateTab();renderDashboard();updateHeader();
+}
+function updateHeader(){
+  const r=currentRate();
+  document.getElementById('rateHeader').textContent='نرخ دلار: '+(r?faNum(r)+' ریال':'ثبت نشده');
+}
+
+// ============ PRODUCTS ============
+function addProduct(){
+  const name=document.getElementById('pName').value.trim();
+  const unit=document.getElementById('pUnit').value;
+  const buyUSD=num(document.getElementById('pBuy').value);
+  const sellUSD=num(document.getElementById('pSell').value);
+  if(!name){toast('نام کالا را وارد کن','error');return}
+  state.products.push({id:uid(),name,unit,buyUSD,sellUSD});
+  saveState();
+  document.getElementById('pName').value='';
+  document.getElementById('pBuy').value='';
+  document.getElementById('pSell').value='';
+  renderProducts();renderTxSelectors();
+  toast('کالا اضافه شد');
+}
+function deleteProduct(id){
+  if(!confirm('حذف کالا؟'))return;
+  state.products=state.products.filter(p=>p.id!==id);saveState();
+  renderProducts();renderTxSelectors();
+}
+function renderProducts(){
+  const h=document.getElementById('productList');
+  if(!state.products.length){h.innerHTML='<div class="empty">هنوز کالایی اضافه نشده</div>';return}
+  h.innerHTML=state.products.map(p=>`
+    <div class="list-item">
+      <div>
+        <div>${p.name} <span class="pill ${p.unit}">${p.unit==='kg'?'کیلو':'تعداد'}</span></div>
+        <div class="meta">خرید: ${faUSD(p.buyUSD)} — فروش: ${faUSD(p.sellUSD)}</div>
+      </div>
+      <button class="btn ghost sm" onclick="deleteProduct('${p.id}')">حذف</button>
+    </div>`).join('');
+}
+
+// ============ CUSTOMERS ============
+function addCustomer(){
+  const name=document.getElementById('cName').value.trim();
+  const phone=document.getElementById('cPhone').value.trim();
+  const address=document.getElementById('cAddress').value.trim();
+  if(!name){toast('نام را وارد کن','error');return}
+  state.customers.push({id:uid(),name,phone,address});
+  saveState();
+  document.getElementById('cName').value='';
+  document.getElementById('cPhone').value='';
+  document.getElementById('cAddress').value='';
+  renderCustomers();renderTxSelectors();
+  toast('مشتری اضافه شد');
+}
+function deleteCustomer(id){
+  if(!confirm('حذف مشتری؟'))return;
+  state.customers=state.customers.filter(c=>c.id!==id);saveState();
+  renderCustomers();renderTxSelectors();
+}
+function customerBalance(id){
+  // فروش = بدهکار به ما، خرید = ما بدهکار
+  let balance=0;
+  state.transactions.filter(t=>t.customerId===id).forEach(t=>{
+    if(t.type==='sell')balance+=t.unitIRR*t.qty;
+    else balance-=t.unitIRR*t.qty;
+  });
+  return balance;
+}
+function renderCustomers(){
+  const h=document.getElementById('customerList');
+  if(!state.customers.length){h.innerHTML='<div class="empty">هنوز مشتری‌ای اضافه نشده</div>';return}
+  h.innerHTML=state.customers.map(c=>{
+    const b=customerBalance(c.id);
+    const bColor=b>0?'green':(b<0?'red':'muted');
+    const bLabel=b>0?'طلب ما: ':b<0?'بدهی ما: ':'تسویه';
+    return `<div class="list-item">
+      <div>
+        <div>${c.name}</div>
+        <div class="meta">${c.phone?c.phone+' — ':''}<span class="${bColor}">${bLabel}${b?faIRR(Math.abs(b)):''}</span></div>
+      </div>
+      <button class="btn ghost sm" onclick="deleteCustomer('${c.id}')">حذف</button>
+    </div>`;
+  }).join('');
+}
+
+// ============ TX FORM ============
+function renderTxSelectors(){
+  const pSel=document.getElementById('txProduct');
+  pSel.innerHTML='<option value="">— انتخاب کالا —</option>'+
+    state.products.map(p=>`<option value="${p.id}">${p.name} (${p.unit==='kg'?'کیلو':'تعداد'})</option>`).join('');
+  const cSel=document.getElementById('txCustomer');
+  cSel.innerHTML='<option value="">— بدون مشتری —</option>'+
+    state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const invSel=document.getElementById('invCustomer');
+  invSel.innerHTML='<option value="">— انتخاب مشتری —</option>'+
+    state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+function txTypeChanged(){
+  document.getElementById('costRow').style.display=
+    document.getElementById('txType').value==='sell'?'block':'none';
+  calcTx();
+}
+function txProductChanged(){
+  const pid=document.getElementById('txProduct').value;
+  const p=state.products.find(x=>x.id===pid);
+  if(!p)return;
+  document.getElementById('txUnitLabel').textContent=p.unit==='kg'?'کیلو':'تعداد';
+  const type=document.getElementById('txType').value;
+  const rate=num(document.getElementById('txRate').value)||currentRate();
+  const priceUSD=type==='sell'?p.sellUSD:p.buyUSD;
+  document.getElementById('txUSD').value=priceUSD||'';
+  document.getElementById('txIRR').value=priceUSD?Math.round(priceUSD*rate):'';
+  if(type==='sell')document.getElementById('txCostUSD').value=p.buyUSD||'';
+  calcTx();
+}
+function syncFromUSD(){
+  if(locked)return;
+  if(updating)return;
+  updating=true;
+  const rate=num(document.getElementById('txRate').value);
+  const usd=num(document.getElementById('txUSD').value);
+  document.getElementById('txIRR').value=rate?(usd*rate).toFixed(0):'';
+  updating=false;
+  calcTx();
+}
+function syncFromIRR(){
+  if(locked)return;
+  if(updating)return;
+  updating=true;
+  const rate=num(document.getElementById('txRate').value);
+  const irr=num(document.getElementById('txIRR').value);
+  document.getElementById('txUSD').value=rate?(irr/rate).toFixed(2):'';
+  updating=false;
+  calcTx();
+}
+function toggleLock(){
+  locked=!locked;
+  const b=document.getElementById('lockBtn');
+  b.classList.toggle('locked',locked);
+  b.textContent=locked?'🔒':'🔓';
+}
+function calcTx(){
+  const qty=num(document.getElementById('txQty').value);
+  const usd=num(document.getElementById('txUSD').value);
+  const irr=num(document.getElementById('txIRR').value);
+  const type=document.getElementById('txType').value;
+  const totalUSD=qty*usd;
+  const totalIRR=qty*irr;
+  document.getElementById('txTotal').innerHTML=
+    `${faUSD(totalUSD)} <span class="muted">=</span> ${faIRR(totalIRR)}`;
+  if(type==='sell'){
+    const costUSD=num(document.getElementById('txCostUSD').value);
+    const profitUSD=(usd-costUSD)*qty;
+    const profitIRR=(irr-costUSD*num(document.getElementById('txRate').value))*qty;
+    const cls=profitUSD>=0?'green':'red';
+    document.getElementById('txProfit').innerHTML=
+      `<span class="${cls}">${faUSD(profitUSD)} — ${faIRR(profitIRR)}</span>`;
+    document.getElementById('txProfitRow').style.display='flex';
+  }else{
+    document.getElementById('txProfitRow').style.display='none';
+  }
+}
+function saveTx(){
+  const type=document.getElementById('txType').value;
+  const date=document.getElementById('txDate').value;
+  const productId=document.getElementById('txProduct').value;
+  const qty=num(document.getElementById('txQty').value);
+  const unitUSD=num(document.getElementById('txUSD').value);
+  const unitIRR=num(document.getElementById('txIRR').value);
+  const rate=num(document.getElementById('txRate').value);
+  const customerId=document.getElementById('txCustomer').value;
+  const note=document.getElementById('txNote').value.trim();
+  const costUSD=type==='sell'?num(document.getElementById('txCostUSD').value):0;
+  if(!date||!productId||!qty||!unitUSD||!rate){
+    toast('فیلدهای ضروری را پر کن','error');return;
+  }
+  state.transactions.push({
+    id:uid(),date,type,productId,qty,
+    unitUSD,unitIRR,rate,
+    costUSD,costIRR:costUSD*rate,
+    customerId:customerId||null,note
+  });
+  saveState();
+  // reset form
+  document.getElementById('txQty').value='';
+  document.getElementById('txUSD').value='';
+  document.getElementById('txIRR').value='';
+  document.getElementById('txNote').value='';
+  document.getElementById('txProduct').value='';
+  renderTxList();renderCustomers();renderDashboard();
+  toast('تراکنش ثبت شد ✓');
+}
+function deleteTx(id){
+  if(!confirm('حذف تراکنش؟'))return;
+  state.transactions=state.transactions.filter(t=>t.id!==id);saveState();
+  renderTxList();renderCustomers();renderDashboard();
+}
+function renderTxList(){
+  const h=document.getElementById('txList');
+  const sorted=[...state.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+  if(!sorted.length){h.innerHTML='<div class="empty">هنوز تراکنشی نیست</div>';return}
+  h.innerHTML=sorted.map(t=>{
+    const p=state.products.find(x=>x.id===t.productId);
+    const pname=p?p.name:'—';
+    const unit=p?(p.unit==='kg'?'کیلو':'عدد'):'';
+    const cust=state.customers.find(c=>c.id===t.customerId);
+    const profitUSD=t.type==='sell'?(t.unitUSD-t.costUSD)*t.qty:0;
+    const profitIRR=t.type==='sell'?(t.unitIRR-t.costIRR)*t.qty:0;
+    const cls=profitUSD>=0?'green':'red';
+    return `<div class="list-item">
+      <div style="flex:1;min-width:0">
+        <div>
+          <span class="pill ${t.type}">${t.type==='sell'?'فروش':'خرید'}</span>
+          ${pname} — ${faNum(t.qty)} ${unit}
+        </div>
+        <div class="meta">
+          ${fa(t.date)} — ${faUSD(t.unitUSD)}/واحد
+          ${cust?' — '+cust.name:''}
+        </div>
+        ${t.type==='sell'?`<div class="meta ${cls}">سود: ${faUSD(profitUSD)} = ${faIRR(profitIRR)}</div>`:''}
+      </div>
+      <button class="btn ghost sm" onclick="deleteTx('${t.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ============ DASHBOARD ============
+function sumStats(txs){
+  let sellUSD=0,sellIRR=0,buyUSD=0,buyIRR=0,profUSD=0,profIRR=0;
+  txs.forEach(t=>{
+    if(t.type==='sell'){
+      sellUSD+=t.unitUSD*t.qty;sellIRR+=t.unitIRR*t.qty;
+      profUSD+=(t.unitUSD-t.costUSD)*t.qty;
+      profIRR+=(t.unitIRR-t.costIRR)*t.qty;
+    }else{
+      buyUSD+=t.unitUSD*t.qty;buyIRR+=t.unitIRR*t.qty;
+    }
+  });
+  return {sellUSD,sellIRR,buyUSD,buyIRR,profUSD,profIRR};
+}
+function renderDashSection(elId,stats,title){
+  const cls=stats.profUSD>=0?'green':'red';
+  document.getElementById(elId).innerHTML=`
+    <div class="stat"><span>جمع فروش</span><span class="v">${faUSD(stats.sellUSD)} = ${faIRR(stats.sellIRR)}</span></div>
+    <div class="stat"><span>جمع خرید</span><span class="v">${faUSD(stats.buyUSD)} = ${faIRR(stats.buyIRR)}</span></div>
+    <div class="stat"><span>سود</span><span class="v ${cls}">${faUSD(stats.profUSD)} = ${faIRR(stats.profIRR)}</span></div>
+  `;
+}
+function renderDashboard(){
+  updateHeader();
+  const r=currentRate();
+  document.getElementById('dashRate').textContent=r?faNum(r)+' ریال':'ثبت نشده';
+  const t=today(),ms=monthStart();
+  renderDashSection('dashToday',sumStats(state.transactions.filter(x=>x.date===t)));
+  renderDashSection('dashMonth',sumStats(state.transactions.filter(x=>x.date>=ms)));
+  renderDashSection('dashAll',sumStats(state.transactions));
+}
+
+// ============ REPORTS ============
+function setRepToday(){
+  document.getElementById('repFrom').value=today();
+  document.getElementById('repTo').value=today();
+}
+function setRepMonth(){
+  document.getElementById('repFrom').value=monthStart();
+  document.getElementById('repTo').value=today();
+}
+function setRepAll(){
+  document.getElementById('repFrom').value='2000-01-01';
+  document.getElementById('repTo').value=today();
+}
+function runReport(){
+  const from=document.getElementById('repFrom').value;
+  const to=document.getElementById('repTo').value;
+  const txs=state.transactions.filter(t=>t.date>=from&&t.date<=to);
+  const stats=sumStats(txs);
+  const cls=stats.profUSD>=0?'green':'red';
+
+  // per-product
+  const perProd={};
+  txs.filter(t=>t.type==='sell').forEach(t=>{
+    if(!perProd[t.productId])perProd[t.productId]={qty:0,usd:0,irr:0,profUSD:0,profIRR:0};
+    perProd[t.productId].qty+=t.qty;
+    perProd[t.productId].usd+=t.unitUSD*t.qty;
+    perProd[t.productId].irr+=t.unitIRR*t.qty;
+    perProd[t.productId].profUSD+=(t.unitUSD-t.costUSD)*t.qty;
+    perProd[t.productId].profIRR+=(t.unitIRR-t.costIRR)*t.qty;
+  });
+  const prodRows=Object.entries(perProd).map(([pid,d])=>{
+    const p=state.products.find(x=>x.id===pid);
+    const c=d.profUSD>=0?'green':'red';
+    return `<div class="stat">
+      <span>${p?p.name:'—'}<div class="meta muted small">${faNum(d.qty)} واحد — فروش ${faUSD(d.usd)}</div></span>
+      <span class="v ${c}">${faUSD(d.profUSD)}<div class="small">${faIRR(d.profIRR)}</div></span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('reportResult').innerHTML=`
+    <div class="card">
+      <h2>خلاصه</h2>
+      <div class="stat"><span>تعداد تراکنش</span><span class="v">${faNum(txs.length)}</span></div>
+      <div class="stat"><span>جمع فروش</span><span class="v">${faUSD(stats.sellUSD)}<div class="small">${faIRR(stats.sellIRR)}</div></span></div>
+      <div class="stat"><span>جمع خرید</span><span class="v">${faUSD(stats.buyUSD)}<div class="small">${faIRR(stats.buyIRR)}</div></span></div>
+      <div class="stat"><span><b>سود کل</b></span><span class="v ${cls}"><b>${faUSD(stats.profUSD)}</b><div class="small">${faIRR(stats.profIRR)}</div></span></div>
+    </div>
+    <div class="card">
+      <h2>سود به تفکیک کالا</h2>
+      ${prodRows||'<div class="empty">فروشی در این بازه نبود</div>'}
+    </div>
+  `;
+}
+
+// ============ INVOICE ============
+function renderInvoiceTab(){
+  const cid=document.getElementById('invCustomer').value;
+  const from=document.getElementById('invFrom').value;
+  const to=document.getElementById('invTo').value;
+  const preview=document.getElementById('invoicePreview');
+  if(!cid){
+    preview.innerHTML='<div class="empty">مشتری را انتخاب کن</div>';return;
+  }
+  const txs=state.transactions.filter(t=>t.customerId===cid&&t.date>=from&&t.date<=to);
+  if(!txs.length){preview.innerHTML='<div class="empty">تراکنشی در این بازه نبود</div>';return}
+  let totalUSD=0,totalIRR=0;
+  txs.forEach(t=>{totalUSD+=t.unitUSD*t.qty;totalIRR+=t.unitIRR*t.qty});
+  preview.innerHTML=`
+    <div class="small">
+      ${txs.map(t=>{
+        const p=state.products.find(x=>x.id===t.productId);
+        return `<div class="stat">
+          <span>${p?p.name:'—'} — ${faNum(t.qty)} ${p&&p.unit==='kg'?'کیلو':'عدد'}
+            <div class="meta muted">${fa(t.date)} — ${t.type==='sell'?'فروش':'خرید'}</div>
+          </span>
+          <span class="v">${faUSD(t.unitUSD*t.qty)}</span>
+        </div>`;
+      }).join('')}
+      <div class="stat"><span><b>جمع کل</b></span><span class="v"><b>${faUSD(totalUSD)}</b><div class="small">${faIRR(totalIRR)}</div></span></div>
+    </div>
+  `;
+}
+function printInvoice(){
+  const cid=document.getElementById('invCustomer').value;
+  const from=document.getElementById('invFrom').value;
+  const to=document.getElementById('invTo').value;
+  if(!cid){toast('مشتری را انتخاب کن','error');return}
+  const c=state.customers.find(x=>x.id===cid);
+  const txs=state.transactions.filter(t=>t.customerId===cid&&t.date>=from&&t.date<=to);
+  if(!txs.length){toast('تراکنشی نیست','error');return}
+  let totalUSD=0,totalIRR=0;
+  const rows=txs.map(t=>{
+    const p=state.products.find(x=>x.id===t.productId);
+    const lineUSD=t.unitUSD*t.qty, lineIRR=t.unitIRR*t.qty;
+    totalUSD+=lineUSD;totalIRR+=lineIRR;
+    return `<tr>
+      <td>${p?p.name:'—'}</td>
+      <td>${faNum(t.qty)} ${p&&p.unit==='kg'?'کیلو':'عدد'}</td>
+      <td>${t.type==='sell'?'فروش':'خرید'}</td>
+      <td>${faNum(t.unitUSD)} $</td>
+      <td>${faNum(lineUSD)} $</td>
+      <td>${faNum(Math.round(lineIRR))}</td>
+      <td>${fa(t.date)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('print-area').innerHTML=`
+    <div class="header">
+      <div><h2>فاکتور</h2><div>حساب ماهیگیری</div></div>
+      <div>تاریخ: ${fa(today())}</div>
+    </div>
+    <div><b>مشتری:</b> ${c.name} ${c.phone?'— '+fa(c.phone):''}</div>
+    ${c.address?'<div><b>آدرس:</b> '+c.address+'</div>':''}
+    <table>
+      <thead><tr><th>کالا</th><th>مقدار</th><th>نوع</th><th>قیمت واحد $</th><th>جمع $</th><th>جمع ریال</th><th>تاریخ</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:10px;text-align:left">
+      <b>جمع کل: ${faNum(totalUSD)} دلار</b><br>
+      <b>معادل: ${faNum(Math.round(totalIRR))} ریال</b>
+    </div>
+  `;
+  window.print();
+}
+
+// ============ BACKUP ============
+function exportBackup(){
+  const data=JSON.stringify(state,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='fishcalc-backup-'+today()+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('پشتیبان دانلود شد');
+}
+function importBackup(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(!d.rates||!d.products)throw new Error('bad');
+      if(!confirm('داده‌های فعلی جایگزین شود؟'))return;
+      state=d;saveState();renderAll();
+      toast('بازگردانی شد');
+    }catch(err){toast('فایل معتبر نیست','error')}
+  };
+  r.readAsText(f);
+}
+function resetAll(){
+  if(!confirm('همهٔ داده‌ها پاک شود؟ حتماً پشتیبان گرفته باش.'))return;
+  if(!confirm('مطمئنی؟ این عمل برگشت‌پذیر نیست.'))return;
+  state={rates:[],products:[],customers:[],transactions:[]};
+  saveState();renderAll();
+  toast('پاک شد');
+}
+function renderBackupStatus(){
+  document.getElementById('backupStatus').innerHTML=`
+    <div class="stat"><span>کالاها</span><span class="v">${faNum(state.products.length)}</span></div>
+    <div class="stat"><span>مشتری‌ها</span><span class="v">${faNum(state.customers.length)}</span></div>
+    <div class="stat"><span>تراکنش‌ها</span><span class="v">${faNum(state.transactions.length)}</span></div>
+    <div class="stat"><span>نرخ‌ها</span><span class="v">${faNum(state.rates.length)}</span></div>
+    <div class="stat"><span>حجم داده</span><span class="v">${faNum(Math.round(JSON.stringify(state).length/1024))} KB</span></div>
+  `;
+}
+
+// ============ RENDER ALL ============
+function renderAll(){
+  updateHeader();
+  renderDashboard();
+  renderRateTab();
+  renderProducts();
+  renderCustomers();
+  renderTxSelectors();
+  renderTxList();
+  renderBackupStatus();
+  renderInvoiceTab();
+}
+function renderTab(name){
+  if(name==='backup')renderBackupStatus();
+  if(name==='invoice')renderInvoiceTab();
+}
+
+// ============ INIT ============
+function init(){
+  loadState();
+  // default dates
+  const t=today();
+  document.getElementById('rateDate').value=t;
+  document.getElementById('txDate').value=t;
+  document.getElementById('repFrom').value=monthStart();
+  document.getElementById('repTo').value=t;
+  document.getElementById('invFrom').value='2000-01-01';
+  document.getElementById('invTo').value=t;
+  const curRate=currentRate();
+  if(curRate){
+    document.getElementById('txRate').value=curRate;
+    document.getElementById('rateValue').value=curRate;
+  }
+
+  // nav
+  document.querySelectorAll('nav button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b===btn));
+      const tab=btn.dataset.tab;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tab));
+      renderTab(tab);
+    });
+  });
+
+  renderAll();
+  txTypeChanged();
+}
+
+init();
+</script>
+</body>
+</html>
